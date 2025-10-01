@@ -12,82 +12,82 @@
 
 
 #define TAG_MATH()\
-  X(LXR_SUM_SYMB)\
-  X(LXR_SUB_SYMB)\
-  X(LXR_MLT_SYMB)\
-  X(LXR_DIV_SYMB)\
-  X(LXR_GRT_SYBM)\
-  X(LXR_LST_SYBM)\
-  X(LXR_EQL_SYBM)
+	X(LXR_SUM_SYMB)\
+	X(LXR_SUB_SYMB)\
+	X(LXR_MLT_SYMB)\
+	X(LXR_DIV_SYMB)\
+	X(LXR_GRT_SYBM)\
+	X(LXR_LST_SYBM)\
+	X(LXR_EQL_SYBM)
 
 #define TAG_COMMENT()\
-  X(LXR_LINE_COMMENT)\
-  X(LXR_OPEN_COMMENT)\
-  X(LXR_CLOSE_COMMENT)
+	X(LXR_LINE_COMMENT)\
+	X(LXR_OPEN_COMMENT)\
+	X(LXR_CLOSE_COMMENT)
 
 
 #define TAG_TYPE()\
-  X(LXR_STRING_TYPE)\
-  X(LXR_INT_TYPE)\
-  X(LXR_DOUBLE_TYPE)\
-  X(LXR_FLOAT_TYPE)\
-  X(LXR_CHAR_TYPE)\
-  X(LXR_POINTER_TYPE)\
-  X(LXR_VOID_TYPE)
+	X(LXR_STRING_TYPE)\
+	X(LXR_INT_TYPE)\
+	X(LXR_DOUBLE_TYPE)\
+	X(LXR_FLOAT_TYPE)\
+	X(LXR_CHAR_TYPE)\
+	X(LXR_POINTER_TYPE)\
+	X(LXR_VOID_TYPE)
 
 
 #define TAG_SEP()\
-  X(LXR_COMMA)\
-  X(LXR_SEMICOLON)\
-  X(LXR_DOUBLE_DOTS)\
-  X(LXR_DOT)\
-  X(LXR_QUOTE)\
-  X(LXR_DOUBLE_QUOTE)\
+	X(LXR_COMMA)\
+	X(LXR_SEMICOLON)\
+	X(LXR_DOUBLE_DOTS)\
+	X(LXR_DOT)\
+	X(LXR_QUOTE)\
+	X(LXR_DOUBLE_QUOTE)\
 
 
 #define TAG_BRK()\
-  X(LXR_OPEN_BRK)\
-  X(LXR_CLOSE_BRK)\
-  X(LXR_OPEN_CRL_BRK)\
-  X(LXR_CLOSE_CRL_BRK)\
-  X(LXR_OPEN_SQR_BRK)\
-  X(LXR_CLOSE_SQR_BRK)
-  
+	X(LXR_OPEN_BRK)\
+	X(LXR_CLOSE_BRK)\
+	X(LXR_OPEN_CRL_BRK)\
+	X(LXR_CLOSE_CRL_BRK)\
+	X(LXR_OPEN_SQR_BRK)\
+	X(LXR_CLOSE_SQR_BRK)
+
 #define TAG_STATEMENT()\
-  X(LXR_IF_STATEMENT)\
-  X(LXR_WHILE_STATEMENT)\
-  X(LXR_RET_STATEMENT)\
-  X(LXR_ASSIGNMENT)\
+	X(LXR_IF_STATEMENT)\
+	X(LXR_WHILE_STATEMENT)\
+	X(LXR_RET_STATEMENT)\
+	X(LXR_ASSIGNMENT)\
 
 #define TAG_MISC()\
-  X(LXR_CONST_DECLARATION)\
-  X(LXR_VAR_DECLARATION)\
-  X(LXR_FN_DECLARATION)\
+	X(LXR_CONST_DECLARATION)\
+	X(LXR_VAR_DECLARATION)\
+	X(LXR_FN_DECLARATION)\
 	X(INVALID_POINTER)
 // Token organization table: this is used to generate the token enumerator and the token array. This architecture define the structure and the sepatration between tokens of different kinds
 
 #define TOKEN_DISPOSE()\
-  TAG_MATH()\
-  TAG_MATH_END,\
-  TAG_COMMENT()\
-  TAG_COMMENT_END,\
-  TAG_TYPE()\
-  TAG_TYPE_END,\
-  TAG_SEP()\
-  TAG_SEP_END,\
-  TAG_BRK()\
-  TAG_BRK_END,\
-  TAG_STATEMENT()\
-  TAG_STATEMENT_END,\
-  TAG_MISC()\
-  TOKEN_TABLE_END,\
+	TAG_MATH()\
+	TAG_MATH_END,\
+	TAG_COMMENT()\
+	TAG_COMMENT_END,\
+	TAG_TYPE()\
+	TAG_TYPE_END,\
+	TAG_SEP()\
+	TAG_SEP_END,\
+	TAG_BRK()\
+	TAG_BRK_END,\
+	TAG_STATEMENT()\
+	TAG_STATEMENT_END,\
+	TAG_MISC()\
+	TOKEN_TABLE_END,\
 	NOT_A_TOKEN
 
 // lexer tokenizer
 #define X(name) name,
 
 typedef enum {
-  TOKEN_DISPOSE()
+	TOKEN_DISPOSE()
 }LXR_TOKENS;
 
 #undef X
@@ -95,7 +95,7 @@ typedef enum {
 #define X(name) name,
 
 static const LXR_TOKENS token_array[] = {
-  TOKEN_DISPOSE()
+	TOKEN_DISPOSE()
 };
 
 #undef X
@@ -106,8 +106,8 @@ static const LXR_TOKENS token_array[] = {
 // the length of the element.
 
 typedef struct{
-  LXR_TOKENS token;
-  char* byte_pointer;
+	LXR_TOKENS token;
+	char* byte_pointer;
 }token_slice;
 
 // lxer data structure
@@ -118,13 +118,13 @@ typedef struct{
 
 
 typedef struct{
-  char*   source;
-  size_t  source_len;
-  size_t  lxer_tracker;
+	char*   source;
+	size_t  source_len;
+	size_t  lxer_tracker;
 
-  token_slice* stream_out;
-  size_t       stream_out_len;
-  Arena_header lxer_ah;
+	token_slice* stream_out;
+	size_t       stream_out_len;
+	Arena_header lxer_ah;
 }lxer_head;
 
 // some predefined tokens, those are here only for 
@@ -135,60 +135,60 @@ typedef struct{
 static char* token_table_lh[] = {
 
 	// math token 
-  [LXR_SUM_SYMB] = "+",
-  [LXR_SUB_SYMB] = "-",
-  [LXR_MLT_SYMB] = "*",
-  [LXR_DIV_SYMB] = "/",
-  [LXR_GRT_SYBM] = ">",
-  [LXR_LST_SYBM] = "<",
-  [LXR_EQL_SYBM] = "==",
-  
+	[LXR_SUM_SYMB] = "+",
+	[LXR_SUB_SYMB] = "-",
+	[LXR_MLT_SYMB] = "*",
+	[LXR_DIV_SYMB] = "/",
+	[LXR_GRT_SYBM] = ">",
+	[LXR_LST_SYBM] = "<",
+	[LXR_EQL_SYBM] = "==",
+
 
 	// comment 
-  [LXR_LINE_COMMENT] = "",
-  [LXR_OPEN_COMMENT] = "",
-  [LXR_CLOSE_COMMENT] = "",
-  
+	[LXR_LINE_COMMENT] = "",
+	[LXR_OPEN_COMMENT] = "",
+	[LXR_CLOSE_COMMENT] = "",
+
 
 	// type 
-  [LXR_STRING_TYPE] = "",
-  [LXR_INT_TYPE] = "",
-  [LXR_DOUBLE_TYPE] = "",
-  [LXR_FLOAT_TYPE] = "",
-  [LXR_CHAR_TYPE] = "",
-  [LXR_POINTER_TYPE] = "",
-  [LXR_VOID_TYPE] = "",
- 
+	[LXR_STRING_TYPE] = "",
+	[LXR_INT_TYPE] = "",
+	[LXR_DOUBLE_TYPE] = "",
+	[LXR_FLOAT_TYPE] = "",
+	[LXR_CHAR_TYPE] = "",
+	[LXR_POINTER_TYPE] = "",
+	[LXR_VOID_TYPE] = "",
+
 
 	// sep 
-  [LXR_COMMA] = ",",
-  [LXR_SEMICOLON] = ";",
-  [LXR_DOUBLE_DOTS] = ":",
-  [LXR_DOT] = ".",
-  [LXR_QUOTE] = "'",
-  [LXR_DOUBLE_QUOTE] = "\"",
+	[LXR_COMMA] = ",",
+	[LXR_SEMICOLON] = ";",
+	[LXR_DOUBLE_DOTS] = ":",
+	[LXR_DOT] = ".",
+	[LXR_QUOTE] = "'",
+	[LXR_DOUBLE_QUOTE] = "\"",
 
 
 	// brackets
-  [LXR_OPEN_BRK] = "(",
-  [LXR_CLOSE_BRK] = ")",
-  [LXR_OPEN_CRL_BRK] = "{",
-  [LXR_CLOSE_CRL_BRK] = "}",
-  [LXR_OPEN_SQR_BRK] = "[",
-  [LXR_CLOSE_SQR_BRK] = "]",
+	[LXR_OPEN_BRK] = "(",
+	[LXR_CLOSE_BRK] = ")",
+	[LXR_OPEN_CRL_BRK] = "{",
+	[LXR_CLOSE_CRL_BRK] = "}",
+	[LXR_OPEN_SQR_BRK] = "[",
+	[LXR_CLOSE_SQR_BRK] = "]",
 
 
 	// statement 
-  [LXR_IF_STATEMENT] = "",
-  [LXR_WHILE_STATEMENT] = "",
-  [LXR_RET_STATEMENT] = "",
-  [LXR_ASSIGNMENT] = "=",
-  
+	[LXR_IF_STATEMENT] = "",
+	[LXR_WHILE_STATEMENT] = "",
+	[LXR_RET_STATEMENT] = "",
+	[LXR_ASSIGNMENT] = "=",
+
 
 	// misc
-  [LXR_CONST_DECLARATION] = "const",
-  [LXR_VAR_DECLARATION] = "var",
-  [LXR_FN_DECLARATION] = "fn",
+	[LXR_CONST_DECLARATION] = "const",
+	[LXR_VAR_DECLARATION] = "var",
+	[LXR_FN_DECLARATION] = "fn",
 	[NOT_A_TOKEN] = "NOT_A_TOKEN",
 	[INVALID_POINTER] = "INVALID_POINTER"
 };
