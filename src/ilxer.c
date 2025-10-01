@@ -1,66 +1,94 @@
-#define LXER_IMPLEMENTATION
+#define ILXER_IMPLEMENTATION
 
-#include "lxer.h"
+#include "ilxer.h"
 
 
 void lxer_start_lexing(lxer_head* lh, char * source){
-  if(DEBUG) DINFO("Start lexing", NULL);
-  lh->source = source;
-  lh->source_len = strlen(source);
-  
-  size_t array_size = 12;
-  size_t array_tracker = 0;
-  token_slice *cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
-  char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*32);
+	if(DEBUG) DINFO("Start lexing", NULL);
+	lh->source = source;
+	lh->source_len = strlen(source);
+	size_t array_size = 12;
+	size_t array_tracker = 0;
+	token_slice *cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
+	char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*32);
 
-  bool ignore_lex;
+	bool ignore_lex;
 
-  for(size_t i=0;i<lh->source_len;i++){
-    char* tracker = &lh->source[i];
-    for(size_t j=0;j<TOKEN_TABLE_END; j++){
-      LXR_TOKENS token = token_array[j];
-      switch(token){
-        case TAG_MATH_END:
-        case TAG_TYPE_END:
-        case TAG_COMMENT_END:
-        case TAG_SEP_END:
-        case TAG_BRK_END:
-        case TAG_STATEMENT_END:
-          ignore_lex = true;
-          break;
-        default:
-          ignore_lex = false;
-          break;
-      } 
-      //////////////////////////////////////////
-      if(!ignore_lex){
-        size_t ws = strlen(token_table_lh[token]);
-        buffer[0] = '\0';
-        strcpy(buffer, tracker);
-        buffer[ws] = '\0';
-        if(strlen(buffer) > 0 && !ignore_lex && strcmp(buffer,token_table_lh[token]) == 0){
-          cache_mem[array_tracker].token = token;
-          cache_mem[array_tracker].byte_pointer = tracker;
-          array_tracker+=1;
+	for(size_t i=0;i<lh->source_len;i++){
+		char* tracker = &lh->source[i];
+		for(size_t j=0;j<TOKEN_TABLE_END; j++){
+			LXR_TOKENS token = token_array[j];
+			switch(token){
+				case TAG_MATH_END:
+				case TAG_TYPE_END:
+				case TAG_COMMENT_END:
+				case TAG_SEP_END:
+				case TAG_BRK_END:
+				case TAG_STATEMENT_END:
+					ignore_lex = true;
+					break;
+				default:
+					ignore_lex = false;
+					break;
+			}
 
-          if(array_tracker >= array_size){
-            size_t old_size = array_size;
-            array_size *= 2;
-            token_slice* n_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
-            for(size_t z=0;z<old_size;z++){
-              n_cache_mem[z] = cache_mem[z];
-            }
-            cache_mem = n_cache_mem;
-          }
+			//////////////////////////////////////////
+			if(!ignore_lex){
+				size_t ws = strlen(token_table_lh[token]);
+				bool isolated = false;
+				buffer[0] = '\0';
+				strcpy(buffer, tracker);
+				buffer[ws] = '\0';
+				
+				if((tracker+ws < (lh->source+lh->source_len)) && lh->source[i+ws] == ' '){
+					isolated = true;
+				}
 
-        }
-      }
-      ////////////////////////////////////////
-    }
-  }
-  lh->stream_out = cache_mem;
-  lh->stream_out_len = array_tracker;
-  return;
+				if(strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0){
+						switch(token){
+							// token syntax variation, if a token require 
+							// a space to be validated you can manually 
+							// insert his token and adding it to the 
+							// fallthrough there
+							case LXR_CONST_DECLARATION:
+							case LXR_VAR_DECLARATION:
+							case LXR_STRING_TYPE:
+							case LXR_INT_TYPE:
+							case LXR_DOUBLE_TYPE:
+							case LXR_FLOAT_TYPE:
+							case LXR_CHAR_TYPE:
+							case LXR_POINTER_TYPE:
+							case LXR_VOID_TYPE:
+								if(isolated){
+									cache_mem[array_tracker].token = token;
+									cache_mem[array_tracker].byte_pointer = tracker;
+									array_tracker+=1;
+								}
+								break;
+							default: 
+								cache_mem[array_tracker].token = token;
+								cache_mem[array_tracker].byte_pointer = tracker;
+								array_tracker+=1;
+								break;
+					}
+					
+					if(array_tracker >= array_size){
+						size_t old_size = array_size;
+						array_size *= 2;
+						token_slice* n_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
+						for(size_t z=0;z<old_size;z++){
+							n_cache_mem[z] = cache_mem[z];
+						}
+						cache_mem = n_cache_mem;
+					}
+				}
+			}
+			////////////////////////////////////////
+		}
+	}
+	lh->stream_out = cache_mem;
+	lh->stream_out_len = array_tracker;
+	return;
 }
 
 
@@ -637,8 +665,21 @@ char* lxer_get_rh(lxer_head* lh, bool reverse){
   char* buffer = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*256);
 
   size_t tracker = lh->lxer_tracker;
-  if(reverse && tracker > 0) tracker-=1;
 
+	if(tracker+1 >= lh->stream_out_len){
+		strcpy(buffer, token_table_lh[INVALID_POINTER]);
+		return buffer;
+	}
+  if(reverse){
+		if(tracker > 0){
+			tracker-=1;
+		}
+		else{
+			strcpy(buffer, token_table_lh[INVALID_POINTER]);
+			return buffer;
+		}
+	}
+	
   char*pointer = lh->stream_out[tracker].byte_pointer + strlen(token_table_lh[lh->stream_out[tracker].token]);
   char*end_ptr = NULL;
   if(tracker < lh->stream_out_len){
@@ -655,24 +696,6 @@ char* lxer_get_rh(lxer_head* lh, bool reverse){
   if(strchr(buffer, ' ') != NULL) buffer[0] = '\0';
   return buffer;
 }
-
-char* lxer_get_rh_in_between(lxer_head* lh, size_t tracker_lh, size_t tracker_rh){
-
-  char* buffer = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*256);
-  if(tracker_lh >= lh->stream_out_len || tracker_lh >= lh->stream_out_len){ 
-    buffer[0] = '\0';
-    return buffer;
-  }
-  char*pointer = lh->stream_out[tracker_lh].byte_pointer + strlen(token_table_lh[lh->stream_out[tracker_lh].token]);
-  char*end_ptr = NULL;
-  end_ptr = lh->stream_out[tracker_rh].byte_pointer;
-  size_t word_len = 0;
-  word_len = end_ptr-pointer;
-  memcpy(&buffer[0],pointer, word_len);
-  buffer[word_len] = '\0';
-  return buffer;
-}
-
 char** lxer_get_rh_lh(lxer_head*lh){
   char** buffer_array = (char**)arena_alloc(&lh->lxer_ah, sizeof(char*)*2);
 

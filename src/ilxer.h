@@ -1,5 +1,5 @@
-#ifndef LXER_H
-#define LXER_H 
+#ifndef ILXER_H
+#define ILXER_H 
 
 
 #include <stdio.h>
@@ -58,19 +58,12 @@
   X(LXR_WHILE_STATEMENT)\
   X(LXR_RET_STATEMENT)\
   X(LXR_ASSIGNMENT)\
-  X(LXT_EXPORT_STATEMENT)\
-  X(LXR_MODULE_STATEMENT)\
-  X(LXR_IMPORT_STATEMENT)\
-  X(LXR_TYPE_ASSIGN)
 
 #define TAG_MISC()\
-  X(LXR_RETURN_ARROW)\
-  X(LXR_DEF_STATEMENT)\
-  X(LXR_STRUCT)\
-  X(LXR_ENUM)\
-  X(LXR_FN)\
-  X(LXR_AS_CAST)
-
+  X(LXR_CONST_DECLARATION)\
+  X(LXR_VAR_DECLARATION)\
+  X(LXR_FN_DECLARATION)\
+	X(INVALID_POINTER)
 // Token organization table: this is used to generate the token enumerator and the token array. This architecture define the structure and the sepatration between tokens of different kinds
 
 #define TOKEN_DISPOSE()\
@@ -87,7 +80,8 @@
   TAG_STATEMENT()\
   TAG_STATEMENT_END,\
   TAG_MISC()\
-  TOKEN_TABLE_END
+  TOKEN_TABLE_END,\
+	NOT_A_TOKEN
 
 // lexer tokenizer
 #define X(name) name,
@@ -139,13 +133,14 @@ typedef struct{
 // in the TOKEN_DISPOSE macro 
 
 static char* token_table_lh[] = {
-  [LXR_SUM_SYMB] = "",
-  [LXR_SUB_SYMB] = "",
-  [LXR_MLT_SYMB] = "",
-  [LXR_DIV_SYMB] = "",
-  [LXR_GRT_SYBM] = "",
-  [LXR_LST_SYBM] = "",
-  [LXR_EQL_SYBM] = "",
+
+  [LXR_SUM_SYMB] = "+",
+  [LXR_SUB_SYMB] = "-",
+  [LXR_MLT_SYMB] = "*",
+  [LXR_DIV_SYMB] = "/",
+  [LXR_GRT_SYBM] = ">",
+  [LXR_LST_SYBM] = "<",
+  [LXR_EQL_SYBM] = "==",
   
   [LXR_LINE_COMMENT] = "",
   [LXR_OPEN_COMMENT] = "",
@@ -177,17 +172,12 @@ static char* token_table_lh[] = {
   [LXR_WHILE_STATEMENT] = "",
   [LXR_RET_STATEMENT] = "",
   [LXR_ASSIGNMENT] = "=",
-  [LXT_EXPORT_STATEMENT] = "",
-  [LXR_MODULE_STATEMENT] = "",
-  [LXR_IMPORT_STATEMENT] = "",
-  [LXR_TYPE_ASSIGN] = "",
   
-  [LXR_RETURN_ARROW] = "",
-  [LXR_DEF_STATEMENT] = "",
-  [LXR_STRUCT] = "",
-  [LXR_ENUM] = "",
-  [LXR_FN] = "",
-  [LXR_AS_CAST] = ""
+  [LXR_CONST_DECLARATION] = "const",
+  [LXR_VAR_DECLARATION] = "var",
+  [LXR_FN_DECLARATION] = "fn",
+	[NOT_A_TOKEN] = "NOT_A_TOKEN",
+	[INVALID_POINTER] = "INVALID_POINTER"
 };
 
 
@@ -274,11 +264,10 @@ bool lxer_misc_expect_misc(lxer_head*lh);
 
 char*   lxer_get_rh(lxer_head*lh, bool reverse);
 char**  lxer_get_rh_lh(lxer_head*lh);
-char* lxer_get_rh_in_between(lxer_head* lh, size_t tracker_lh, size_t tracker_rh);
 
 
-#ifndef LXER_IMPLEMENTATION
-#define LXER_IMPLEMENTATION
+#ifndef ILXER_IMPLEMENTATION
+#define ILXER_IMPLEMENTATION
 
 #endif
 #endif // lxer
