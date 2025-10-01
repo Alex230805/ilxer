@@ -134,6 +134,7 @@ typedef struct{
 
 static char* token_table_lh[] = {
 
+	// math token 
   [LXR_SUM_SYMB] = "+",
   [LXR_SUB_SYMB] = "-",
   [LXR_MLT_SYMB] = "*",
@@ -142,10 +143,14 @@ static char* token_table_lh[] = {
   [LXR_LST_SYBM] = "<",
   [LXR_EQL_SYBM] = "==",
   
+
+	// comment 
   [LXR_LINE_COMMENT] = "",
   [LXR_OPEN_COMMENT] = "",
   [LXR_CLOSE_COMMENT] = "",
   
+
+	// type 
   [LXR_STRING_TYPE] = "",
   [LXR_INT_TYPE] = "",
   [LXR_DOUBLE_TYPE] = "",
@@ -153,7 +158,9 @@ static char* token_table_lh[] = {
   [LXR_CHAR_TYPE] = "",
   [LXR_POINTER_TYPE] = "",
   [LXR_VOID_TYPE] = "",
-  
+ 
+
+	// sep 
   [LXR_COMMA] = ",",
   [LXR_SEMICOLON] = ";",
   [LXR_DOUBLE_DOTS] = ":",
@@ -161,6 +168,8 @@ static char* token_table_lh[] = {
   [LXR_QUOTE] = "'",
   [LXR_DOUBLE_QUOTE] = "\"",
 
+
+	// brackets
   [LXR_OPEN_BRK] = "(",
   [LXR_CLOSE_BRK] = ")",
   [LXR_OPEN_CRL_BRK] = "{",
@@ -168,11 +177,15 @@ static char* token_table_lh[] = {
   [LXR_OPEN_SQR_BRK] = "[",
   [LXR_CLOSE_SQR_BRK] = "]",
 
+
+	// statement 
   [LXR_IF_STATEMENT] = "",
   [LXR_WHILE_STATEMENT] = "",
   [LXR_RET_STATEMENT] = "",
   [LXR_ASSIGNMENT] = "=",
   
+
+	// misc
   [LXR_CONST_DECLARATION] = "const",
   [LXR_VAR_DECLARATION] = "var",
   [LXR_FN_DECLARATION] = "fn",

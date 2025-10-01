@@ -25,5 +25,9 @@ int main(){
 	lxer_next_token(&lh);
 	lh_rh = lxer_get_rh_lh(&lh);
 	printf("Current token is [%s], token left hand is %s, token right hand is %s\n", token_table_lh[lxer_get_current_token(&lh)], lh_rh[1], lh_rh[0]);
+
+
+	arena_free(&lh.lxer_ah);
+	arena_free(&ah);
 	return 0;
 }

@@ -1,0 +1,15 @@
+{
+	"name": "Gino",
+	"age": 42,
+	"obbies": [
+		{
+			"name": "riding planes",
+			"description": "some crazy sport"
+		},
+		{
+			"name": "dolphin-running",
+			"description": "literally speeding competition against dolpthins"
+		}
+	],
+	"total score": 100
+}
