@@ -8,7 +8,8 @@
 ## Improved version of lxer 
 
 This is an evolution of the homonymous project lxer, it's a simple and fast general purpose parser that could be 
-usefull in situations where there is a need for a tokenizer and you didn't want to import a very complex parser.
+usefull in situations where there is a need for a tokenizer and you don't want to import a very bloated external
+parser.
 
 iLxer is not meant to be "ergonomic" for the user, it doesn't have much functionality to begin with, but only the 
 basic tokenization capability and token identification functions that can be used to implement anything from 
