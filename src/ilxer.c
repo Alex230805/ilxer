@@ -46,10 +46,9 @@ void lxer_start_lexing(lxer_head* lh, char * source){
 
 				if(strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0){
 					switch(token){
-						// token syntax variation, if a token require 
+						// token syntax variation: if a token require 
 						// a space to be validated you can manually 
-						// insert his token and adding it to the 
-						// fallthrough there
+						// insert it in the fallthrough down here
 						case LXR_CONST_DECLARATION:
 						case LXR_VAR_DECLARATION:
 						case LXR_STRING_TYPE:
