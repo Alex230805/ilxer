@@ -675,7 +675,7 @@ char* lxer_get_rh(lxer_head* lh, bool reverse){
 	size_t tracker = lh->lxer_tracker;
 
 	if(tracker+1 >= lh->stream_out_len){
-		strcpy(buffer, token_table_lh[INVALID_POINTER]);
+		buffer = NULL;	
 		return buffer;
 	}
 	if(reverse){
@@ -683,7 +683,7 @@ char* lxer_get_rh(lxer_head* lh, bool reverse){
 			tracker-=1;
 		}
 		else{
-			strcpy(buffer, token_table_lh[INVALID_POINTER]);
+			buffer = NULL;	
 			return buffer;
 		}
 	}

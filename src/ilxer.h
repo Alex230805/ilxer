@@ -193,21 +193,28 @@ static char* token_table_lh[] = {
 	[INVALID_POINTER] = "INVALID_POINTER"
 };
 
-
+// length of the defined token table
 static size_t token_table_length = TOKEN_TABLE_END;
 
+
+// lexing functions
 void lxer_start_lexing(lxer_head* lh, char* source_file);
 void lxer_get_lxer_content(lxer_head*lh);
 
+// increment the local tracker by one to index the following token
 bool lxer_next_token(lxer_head*lh);
+
 void lxer_set_new_target(lxer_head* lh, char* new_line);
 
+// get token associated with the current pointer
 LXR_TOKENS lxer_get_current_token(lxer_head*lh);
+// get token associated with the following pointer
 LXR_TOKENS lxer_get_next_token(lxer_head*lh);
+
+// get current pointer (char*) of a token from the source code 
 char* lxer_get_current_pointer(lxer_head*lh);
 
-
-bool lxer_next_token(lxer_head*lh);
+// lxer check functions: check if the token passed as parameter is math, comment, type, sep, brk, statement or misc
 bool lxer_is_math(LXR_TOKENS token);
 bool lxer_is_comment(LXR_TOKENS token);
 bool lxer_is_type(LXR_TOKENS token);
@@ -216,6 +223,9 @@ bool lxer_is_brk(LXR_TOKENS token);
 bool lxer_is_statement(LXR_TOKENS token);
 bool lxer_is_misc(LXR_TOKENS token);
 
+
+
+// lxer expect functions, usefull to decide the parsing process based on the type of the following token
 bool lxer_math_expect_math(lxer_head*lh);
 bool lxer_math_expect_comment(lxer_head*lh);
 bool lxer_math_expect_type(lxer_head*lh);
@@ -275,7 +285,20 @@ bool lxer_misc_expect_statement(lxer_head*lh);
 bool lxer_misc_expect_misc(lxer_head*lh);
 
 
-
+// lxer get right hand, left hand or both functions, those are usefull to grep ONLY the 
+// text string inside the source file that follow the current token or it's behind it.
+// This work only if the previous/next word is not a token:
+//
+//	get left hand:
+//					\
+//					|
+//					+
+//	.... [token-i] word [token] [token+i] .....
+//
+//	If there is no word before the current token, then the function will return a NULL
+//	pointer ( same behaviour apply to get both and get reverse )
+//
+//
 char*   lxer_get_rh(lxer_head*lh, bool reverse);
 char**  lxer_get_rh_lh(lxer_head*lh);
 
