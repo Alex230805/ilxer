@@ -1,6 +1,6 @@
 {
 	"name": "Gino",
-	"age": 42,
+	"age": "42",
 	"obbies": [
 		{
 			"name": "riding planes",
@@ -11,5 +11,5 @@
 			"description": "literally speeding competition against dolpthins"
 		}
 	],
-	"total score": 100
+	"total score": "100"
 }

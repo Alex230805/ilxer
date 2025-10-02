@@ -117,6 +117,14 @@ LXR_TOKENS lxer_get_current_token(lxer_head*lh){
 	return lh->stream_out[lh->lxer_tracker].token;
 }
 
+
+LXR_TOKENS lxer_get_next_token(lxer_head*lh){
+	if(lh->lxer_tracker+1 == lh->stream_out_len) {
+		return TOKEN_TABLE_END;
+	}
+	return lh->stream_out[lh->lxer_tracker+1].token;
+}
+
 void lxer_set_new_target(lxer_head* lh, char* new_line){
 	for(size_t i=lh->lxer_tracker;i<lh->stream_out_len; i++){
 		if(lh->stream_out[i].byte_pointer > new_line){
