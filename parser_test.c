@@ -9,19 +9,6 @@ Arena_header ah;
 lxer_head lh;
 
 #define SOURCE "./test.json"
-#define OBBIES_LIMIT 10
-
-typedef struct{
-	char name[256];
-	char description[256];
-}obbie;
-
-typedef struct{
-	char name[256];
-	int age;
-	obbie obbies[OBBIES_LIMIT];
-	int totla_score;
-}person_card;
 
 int main(){
 
@@ -29,7 +16,6 @@ int main(){
 	lxer_start_lexing(&lh,sb->string);
 	//lxer_get_lxer_content(&lh);
 
-	person_card id;
 	NOTY("PARSER","Parsing file, searching for all strings inside the example file "SOURCE, NULL);
 
 	char buffer[512];
@@ -40,28 +26,21 @@ int main(){
 	char* string_open_ptr;
 	int string_len = 0;
 	int indent_level = 0;
-	bool scope_open = false;
 	do{
 		token = lxer_get_current_token(&lh);
 		next_token = lxer_get_next_token(&lh);
 		switch(token){
 			case LXR_OPEN_CRL_BRK:
-				if(!scope_open){
-					scope_open = true;
-				}else{
-					indent_level += 4;
-				}
+				indent_level += 4;
 				break;
 			case LXR_CLOSE_CRL_BRK:
 				indent_level -= 4;
-				if(indent_level == 0){
-					scope_open = false;
-				}
 				break;
 			case LXR_OPEN_SQR_BRK: 
-				printf("array open\n");
-				break;
 			case LXR_CLOSE_SQR_BRK:
+				printf("\n");
+				for(int i=0;i<indent_level;i++) printf(" ");
+				printf("%s\n", token_table_lh[token]);	
 				break;
 			case LXR_DOUBLE_QUOTE: 
 				if(!string_open){
@@ -90,6 +69,7 @@ int main(){
 					}
 				}
 				break;
+			case LXR_COMMA: break;
 			default: break;
 		}
 		
