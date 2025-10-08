@@ -11,8 +11,20 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 	size_t array_tracker = 0;
 	token_slice *cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
 	char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*32);
-
-	bool ignore_lex;
+	bool ignore_lex = true;
+	
+	for(size_t i=0;i<lh->source_len && ignore_lex;i++){
+		if(lh->source[i] > 0x20){
+			ignore_lex = false;
+		}
+	}
+	if(ignore_lex){
+		cache_mem[array_tracker].token = TOKEN_TABLE_END;
+		cache_mem[array_tracker].byte_pointer = lh->source;
+		lh->stream_out = cache_mem;
+		lh->stream_out_len = array_tracker;
+		return;
+	}
 
 	for(size_t i=0;i<lh->source_len;i++){
 		char* tracker = &lh->source[i];
