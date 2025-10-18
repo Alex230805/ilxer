@@ -6,7 +6,7 @@
 
 
 Arena_header ah;
-lxer_head lh;
+lxer_header lh;
 
 #define SOURCE "./test.json"
 

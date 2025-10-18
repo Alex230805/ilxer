@@ -4,7 +4,7 @@
 #include "misc.h"
 
 Arena_header ah;
-lxer_head lh;
+lxer_header lh;
 
 #define TEST_FILE "./example.txt"
 
