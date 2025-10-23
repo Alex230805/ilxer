@@ -210,6 +210,50 @@ static char* token_table_lh[] = {
 
 };
 
+// compound expression
+
+#define MAX_COMPOUND 32
+
+typedef struct{
+	size_t len;
+	LXR_TOKENS token_chain[MAX_COMPOUND];
+}ilxer_compound;
+
+
+#define DECLARE_COMPOUND(index, length, ...)\
+	[index] = &((ilxer_compound){			\
+			.len = length,					\
+			{								\
+				__VA_ARGS__					\
+			}								\
+		}									\
+	)
+
+
+typedef enum{
+	CINDEX_DOUBLE_EQ = 0,
+	CINDEX_TRIPLE_EQ,
+	CINDEX_TRIPLE_DOT,
+	CINDEX_DOUBLE_SLASH,
+	CINDEX_MULTY_LINE_COMMENT,
+	CINDEX_END,
+	CINDEX_NOT_FOUND
+}CINDEX;
+
+static ilxer_compound* compound_exp[] = {
+	
+	DECLARE_COMPOUND(CINDEX_DOUBLE_EQ, 2, LXR_ASSIGNMENT, LXR_ASSIGNMENT),					// '==' symbols
+	DECLARE_COMPOUND(CINDEX_TRIPLE_EQ, 3, LXR_ASSIGNMENT, LXR_ASSIGNMENT, LXR_ASSIGNMENT),	// '===' symbols
+	DECLARE_COMPOUND(CINDEX_TRIPLE_DOT, 3, LXR_DOT, LXR_DOT, LXR_DOT),						// '...' symbols
+	DECLARE_COMPOUND(CINDEX_DOUBLE_SLASH, 2, LXR_DIV_SYMB, LXR_DIV_SYMB),					// '//' symbols
+	DECLARE_COMPOUND(CINDEX_MULTY_LINE_COMMENT, 2, LXR_DIV_SYMB, LXR_MLT_SYMB),				// '/*' symbols
+
+	// terminator for compound expression array, this is required to estimate the size of the compound expressions array
+	DECLARE_COMPOUND(CINDEX_END, 0, TOKEN_TABLE_END)
+};
+
+
+
 // length of the defined token table
 static size_t token_table_length = TOKEN_TABLE_END;
 
@@ -222,6 +266,8 @@ void lxer_get_lxer_content(lxer_header*lh);
 bool lxer_next_token(lxer_header*lh);
 
 void lxer_set_new_target(lxer_header* lh, char* new_line);
+void lxer_set_new_tracker(lxer_header*lh,int tracker);
+void lxer_increase_tracker(lxer_header*lh,int tracker);
 
 // get token associated with the current pointer
 LXR_TOKENS lxer_get_current_token(lxer_header*lh);
@@ -230,6 +276,8 @@ LXR_TOKENS lxer_get_next_token(lxer_header*lh);
 
 // get current pointer (char*) of a token from the source code 
 char* lxer_get_current_pointer(lxer_header*lh);
+char* lxer_get_string_representation(LXR_TOKENS tok);
+
 
 // lxer check functions: check if the token passed as parameter is math, comment, type, sep, brk, statement or misc
 bool lxer_is_math(LXR_TOKENS token);
@@ -300,6 +348,13 @@ bool lxer_misc_expect_sep(lxer_header*lh);
 bool lxer_misc_expect_brk(lxer_header*lh);
 bool lxer_misc_expect_statement(lxer_header*lh);
 bool lxer_misc_expect_misc(lxer_header*lh);
+
+// compound related functions 
+
+void lxer_get_compounds();
+CINDEX lxer_expect_compound(lxer_header* lh);
+char* lxer_get_compound_lh(CINDEX c);
+int lxer_get_compound_length(CINDEX c);
 
 
 // lxer get right hand, left hand or both functions, those are usefull to grep ONLY the 
