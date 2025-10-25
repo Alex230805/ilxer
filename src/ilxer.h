@@ -10,6 +10,10 @@
 #include <stdbool.h>
 #include <misc.h>
 
+
+
+// ilxer's main macros to allow easy modification
+
 #define MAX_COMPOUND 32
 
 #define TOKEN_TABLE_LH_SIGN\
@@ -81,13 +85,12 @@
 	}CINDEX;
 
 
-
-#define DECLARE_MATH_TOKEN(...)\
+#define DECLARE_MATH(...)\
 	__VA_ARGS__,\
 	TAG_MATH_END
 
 
-#define DECLARE_COMMENT_TOKEN(...)\
+#define DECLARE_COMMENT(...)\
 	__VA_ARGS__,\
 	TAG_COMMENT_END\
 
@@ -129,6 +132,8 @@
 	X(TAG_PP_END)
 
 
+// forward declaration of the main struct
+
 typedef struct token_slice token_slice;
 typedef struct lxer_header lxer_header;
 typedef struct ilxer_compound ilxer_compound;
@@ -141,6 +146,15 @@ typedef struct ilxer_compound ilxer_compound;
 #include "ilxer_default_config.h"
 
 #endif
+
+// token slice and lxer_header are used inside the parsing section 
+// to form the outpu stream of tokens, were for each token the char*
+// pointer from the source code is tinght to the matching token. 
+//
+// lxer_header keep track of the current pointed token, store the source 
+// code and the output stream, it include also a reserved Arena_header 
+// to allocate memory as needed by using the arena allocator shipped with 
+// the misc.h library ( namely cbox )
 
 struct token_slice{
 	LXR_TOKENS token;
