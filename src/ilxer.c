@@ -31,19 +31,16 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 		for(size_t j=0;j<TOKEN_TABLE_END; j++){
 			LXR_TOKENS token = token_array[j];
 			switch(token){
-				case TAG_MATH_END:
-				case TAG_TYPE_END:
-				case TAG_COMMENT_END:
-				case TAG_SEP_END:
-				case TAG_BRK_END:
-				case TAG_STATEMENT_END:
-				case TAG_MISC_END:
+#define X(name)\
+	case name:
+				TOKEN_SEPARATOR()
 					ignore_lex = true;
 					break;
 				default:
 					ignore_lex = false;
 					break;
 			}
+#undef X
 
 			//////////////////////////////////////////
 			if(!ignore_lex){
