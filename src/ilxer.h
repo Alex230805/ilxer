@@ -61,12 +61,17 @@
 	};
 
 
-#define DEFINE_TOKEN(...)\
+#define DEFINE_TOKEN_TAG(...)\
 	typedef enum {\
 		__VA_ARGS__,\
 		TOKEN_TABLE_END,\
 		NOT_A_TOKEN\
 	}LXR_TOKENS;
+
+#define DEFINE_TOKEN(...)\
+	DEFINE_TOKEN_TAG(__VA_ARGS__)\
+	DEFINE_TOKEN_TABLE(__VA_ARGS__)
+
 
 #define DECLARE_COMPOUND_TOKEN(...)\
 	typedef enum{\
