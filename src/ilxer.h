@@ -12,6 +12,21 @@
 
 // ilxer's main macros to allow easy modification
 
+/*
+ * #define ILXER_PRECISE_MODE
+ *
+ * By activating this flag the tokenizer will be compiler with a "precise mode" 
+ * activated. This precise mode allow the lexer to tokenize unrecognized word 
+ * as a separated token and pushing it inside the main token list. 
+ *
+ * This is disabled by default to allow a simple and fast tokenizer to be 
+ * used.
+ *
+ *
+ *
+*/
+
+
 #define MAX_COMPOUND 32
 
 #define TOKEN_TABLE_LH_SIGN\
@@ -212,7 +227,7 @@ LXR_TOKENS lxer_get_next_token(lxer_header*lh);
 // get current pointer (char*) of a token from the source code 
 char* lxer_get_current_pointer(lxer_header*lh);
 char* lxer_get_string_representation(LXR_TOKENS tok);
-
+char* lxer_get_word(lxer_header*lh);
 
 size_t lxer_get_current_line(lxer_header*lh);
 

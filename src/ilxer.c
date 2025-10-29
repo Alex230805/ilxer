@@ -2,8 +2,6 @@
 
 #include "ilxer.h"
 
-
-
 #define TOK_RESIZE()\
 	do{																											\
 		if(array_tracker >= array_size){																		\
@@ -18,15 +16,28 @@
 	}while(0)																									\
 
 
+#define TOK_RESIZE_PRE()\
+	if(pre_array_tracker >= pre_array_size){																		\
+		size_t old_size = pre_array_size;																			\
+		pre_array_size *= 2;																						\
+		token_slice* pre_n_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*pre_array_size);	\
+		for(size_t z=0;z<old_size;z++){																				\
+			pre_n_cache_mem[z] = pre_cache_mem[z];																	\
+		}																											\
+		pre_cache_mem = pre_n_cache_mem;																			\
+	}
+
 
 void lxer_start_lexing(lxer_header* lh, char * source){
 	if(DEBUG) DINFO("Start lexing, file size: %lu", strlen(source));
 	lh->source = source;
 	lh->source_len = strlen(source);
+	
 	size_t array_size = 12;
 	size_t array_tracker = 0;
 	token_slice *cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
-	char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*32);
+
+	char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*512);
 	bool ignore_lex = true;
 	size_t line_tracker = 1;	
 	for(size_t i=0;i<lh->source_len && ignore_lex;i++){
@@ -42,6 +53,8 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 		return;
 	}
 
+	bool ignore_string = false;
+	bool jump_hover = false;
 	for(size_t i=0;i<lh->source_len;i++){
 		char* tracker = &lh->source[i];
 		for(size_t j=0;j<TOKEN_TABLE_END; j++){
@@ -62,9 +75,10 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 			if(!ignore_lex){
 				bool isolated = false;
 				bool abort = true;
-				
 				if(token == LXR_NEW_LINE){
-					if(*tracker == '\n') abort = false;
+					if(*tracker == '\n') {
+						abort = false;
+					}
 				}else{
 					size_t ws = strlen(token_table_lh[token]);
 					buffer[0] = '\0';
@@ -72,10 +86,20 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 					buffer[ws] = '\0';
 
 					if((tracker+ws < (lh->source+lh->source_len)) && lh->source[i+ws] == ' ')	isolated = true;
-					if(strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0)			abort = false;
+					if(strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0){
+						if(token == LXR_DOUBLE_QUOTE){
+							if(!ignore_string){
+								ignore_string = true;
+							}else{
+								ignore_string = false;
+								jump_hover = false;
+							}
+						}
+						abort = false;
+					}
 				}
 
-				if(!abort){
+				if(!abort && !jump_hover){
 					if(token == LXR_NEW_LINE){
 						line_tracker += 1;
 					}else{
@@ -99,6 +123,9 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 								cache_mem[array_tracker].byte_pointer = tracker;
 								cache_mem[array_tracker].line = line_tracker;
 								array_tracker+=1;
+								if(ignore_string){
+									jump_hover = true;
+								}
 								break;
 						}
 					}
@@ -108,8 +135,50 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 			////////////////////////////////////////
 		}
 	}
+	
 	lh->stream_out = cache_mem;
 	lh->stream_out_len = array_tracker;
+
+#ifdef ILXER_PRECISE_MODE
+
+	size_t pre_array_size = 12;
+	size_t pre_array_tracker = 0;
+	token_slice *pre_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*pre_array_size);
+	
+	for(size_t i=0;i<lh->stream_out_len-1; i++){
+		char* end = lh->stream_out[i+1].byte_pointer;
+		char* start = lh->stream_out[i].byte_pointer + strlen(token_table_lh[lh->stream_out[i].token]);
+		pre_cache_mem[pre_array_tracker] = lh->stream_out[i];
+		pre_array_tracker += 1;
+		TOK_RESIZE_PRE();
+		size_t word_size = end - start;
+		char* word_buffer= (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*512);
+		memcpy(word_buffer, start, sizeof(char)*word_size);
+		word_buffer[word_size] = '\0';
+		size_t copy_tracker = 0;
+		char* word = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*512);
+		for(size_t j=0;j<word_size;j++){
+			if(word_buffer[j] >='0'){
+				word[copy_tracker] = word_buffer[j];
+				copy_tracker += 1;
+			}
+		}
+		word[copy_tracker] = '\0';
+		if(copy_tracker > 0){
+			pre_cache_mem[pre_array_tracker].token = LXR_WORD;
+			pre_cache_mem[pre_array_tracker].byte_pointer = word;
+			pre_cache_mem[pre_array_tracker].line = lh->stream_out[i].line;
+			pre_array_tracker += 1;
+			TOK_RESIZE_PRE();
+		}
+	}
+	pre_cache_mem[pre_array_tracker] = lh->stream_out[lh->stream_out_len-1];
+	pre_array_tracker += 1;
+	TOK_RESIZE_PRE();
+	lh->stream_out = pre_cache_mem;
+	lh->stream_out_len = pre_array_tracker;
+
+#endif
 	return;
 }
 
@@ -123,7 +192,11 @@ void lxer_get_lxer_content(lxer_header*lh){
 	for(size_t i=0;i<lh->stream_out_len;i++){
 		LXR_TOKENS tok = lh->stream_out[i].token;
 		char* pointer = lh->stream_out[i].byte_pointer;
-		printf("\ttoken found at byte_stream[%ld]: token_tablep[%d] -> %s\n", pointer-lh->source, tok,token_table_lh[tok]);
+		if(lh->stream_out[i].token == LXR_WORD){
+			printf("\ttoken word found at line %zu -> %s\n", lh->stream_out[i].line,lh->stream_out[i].byte_pointer);
+		}else{
+			printf("\ttoken found at line %zu: token_table[%d] -> %s\n", lh->stream_out[i].line, tok,token_table_lh[tok]);
+		}
 	}
 }
 
@@ -178,6 +251,12 @@ char* lxer_get_string_representation(LXR_TOKENS tok){
 	return token_table_lh[tok];
 }
 
+char* lxer_get_word(lxer_header*lh){
+	if(lh->stream_out[lh->lxer_tracker].token == LXR_WORD){
+		return lh->stream_out[lh->lxer_tracker].byte_pointer;
+	}
+	return NULL;
+}
 
 char* lxer_get_current_pointer(lxer_header*lh){
 	return lh->stream_out[lh->lxer_tracker].byte_pointer;
@@ -807,32 +886,32 @@ char* lxer_get_rh(lxer_header* lh, bool reverse, bool strict){
 			return buffer;
 		}
 	}
-	buffer = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*256);
-	char*pointer = lh->stream_out[tracker].byte_pointer + strlen(token_table_lh[lh->stream_out[tracker].token]);
-	char*end_ptr = NULL;
-	if(tracker < lh->stream_out_len){
-		end_ptr = lh->stream_out[tracker+1].byte_pointer;
-	}else{
-		end_ptr = &lh->source[lh->source_len-1];
-	}
+	if(lh->stream_out[tracker].token != LXR_WORD && lh->stream_out[tracker+1].token != LXR_WORD){
+		buffer = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*256);
 
-	while(*pointer < '0') pointer+=1;
-	size_t word_len = 0;
-	word_len = end_ptr-pointer;
-	memcpy(&buffer[0],pointer, word_len);
-	buffer[word_len] = '\0';
-	char* space = strchr(buffer, ' ');
-	if(space != NULL && strict){
-		buffer[space - buffer] = '\0';
+		char*pointer = lh->stream_out[tracker].byte_pointer + strlen(token_table_lh[lh->stream_out[tracker].token]);
+		char*end_ptr = NULL;
+		if(tracker < lh->stream_out_len){
+			end_ptr = lh->stream_out[tracker+1].byte_pointer;
+		}else{
+			end_ptr = &lh->source[lh->source_len-1];
+		}
+		while(*pointer < '0') pointer+=1;
+		size_t word_len = 0;
+		word_len = end_ptr-pointer;
+		memcpy(&buffer[0],pointer, word_len);
+		buffer[word_len] = '\0';
+		char* space = strchr(buffer, ' ');
+		if(space != NULL && strict){
+			buffer[space - buffer] = '\0';
+		}
 	}
 	return buffer;
 }
 char** lxer_get_rh_lh(lxer_header*lh){
 	char** buffer_array = (char**)arena_alloc(&lh->lxer_ah, sizeof(char*)*2);
-
 	buffer_array[0] = lxer_get_rh(lh, false, false); 
 	buffer_array[1] = lxer_get_rh(lh, true, false);
-
 	return buffer_array;
 }
 

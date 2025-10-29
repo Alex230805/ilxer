@@ -59,3 +59,22 @@ can be used to copy a stream of byte that may contain the string literal by jut 
 calling this function to copy the stream from the current quote to the next one inside the stream of token, and this will return a 
 copy of this cropped source code stream that can contain the string literal. 
 
+
+### iLxer precise mode 
+
+Some times it would be usefull to tokenize more informations for general use, maybe for error handling or just to have a more 
+general lexer. For that a "precise" mode has been introduced to parse every single word inside a text file and sign the 
+unexpected one ( the ones that are not present in the token table configuration file ) will be flagged as a "LXR_WORD" token. 
+This mode is not enabled by default since it will use more memory and general computational power to just parse a test file, 
+and for that matter since the point of ilxer is having a simple and fast lexer the whole precise mode it's just a plus 
+that someone may or may not activate depending on what the requirement are. 
+This mode can be enabled by activating the "ILXER_PRECISE_MODE" preprocessor flag during compilation or directly in the header 
+file of ilxer to enable the second half of the lexer function and to start parsing every single token. 
+
+This type of token have as a byte_pointer a separated string which contain the word tokenized as LXR_WORD, this will not allow 
+the fuction like "lxer_get_rh()" or "lxer_get_rh_lh" to work properly with this token since those functions are suppose to be 
+used when this mode is disabled to get text between two tokens, and since now every text not recognized as a token will be casted 
+as a separate token LXR_WORD it's useless to rely in those two functions to get the right hand or left hand content from the 
+current pointed token. If this mode is enabled the function "lxer_get_word()" will return directly this pointer.
+
+
