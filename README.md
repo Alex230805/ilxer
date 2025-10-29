@@ -72,9 +72,9 @@ This mode can be enabled by activating the "ILXER_PRECISE_MODE" preprocessor fla
 file of ilxer to enable the second half of the lexer function and to start parsing every single token. 
 
 This type of token have as a byte_pointer a separated string which contain the word tokenized as LXR_WORD, this will not allow 
-the fuction like "lxer_get_rh()" or "lxer_get_rh_lh" to work properly with this token since those functions are suppose to be 
+the fuction like "lxer_get_rh()" or "lxer_get_rh_lh()" to work properly with this token since those functions are suppose to be 
 used when this mode is disabled to get text between two tokens, and since now every text not recognized as a token will be casted 
-as a separate token LXR_WORD it's useless to rely in those two functions to get the right hand or left hand content from the 
-current pointed token. If this mode is enabled the function "lxer_get_word()" will return directly this pointer.
+as a separate token LXR_WORD it's useless to rely on those two functions to get the right hand or left hand content from the 
+current pointed token. If this mode is enabled the function "lxer_get_word()" will return directly the string pointer of the LXR_WORD token.
 
 
