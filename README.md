@@ -21,7 +21,7 @@ to specify if they need to be separated by a space or not, and this can help in 
 contain a token, for example "int" inside the "internal" word and so on. With this addition the tokenizer will recognise 
 "int" only if it is separated by a space to avoid unwanted behaviour.
 The list of tokens that need to be separated by a space are defined inside a macro in the main header file, 
-search for "TOKEN_SEPARATOR()" macro.
+search for "TOKEN_ISOLATED()" macro.
 
 
 ### Compound expressions 

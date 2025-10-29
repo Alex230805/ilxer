@@ -63,7 +63,7 @@ int main(){
 			case LXR_DOUBLE_DOTS: 
 				if(tag_open){
 					for(int i=0;i<indent_level;i++) printf(" ");
-					printf("Tag named %s found with content: ", buffer);	
+					printf("Tag named %s found at %zu with content: ", buffer, lxer_get_current_line(&lh));	
 					if(next_token == LXR_OPEN_SQR_BRK){
 						tag_open = false;
 					}

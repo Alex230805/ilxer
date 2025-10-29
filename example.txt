@@ -1,3 +1,3 @@
-var iphone17=1;
-
-
+var iphone17 = 1 ;
+var foo = " Hello world " ;
+var bar ;

@@ -3,6 +3,22 @@
 #include "ilxer.h"
 
 
+
+#define TOK_RESIZE()\
+	do{																											\
+		if(array_tracker >= array_size){																		\
+			size_t old_size = array_size;																		\
+			array_size *= 2;																					\
+			token_slice* n_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);	\
+			for(size_t z=0;z<old_size;z++){																		\
+				n_cache_mem[z] = cache_mem[z];																	\
+			}																									\
+			cache_mem = n_cache_mem;																			\
+		}																										\
+	}while(0)																									\
+
+
+
 void lxer_start_lexing(lxer_header* lh, char * source){
 	if(DEBUG) DINFO("Start lexing, file size: %lu", strlen(source));
 	lh->source = source;
@@ -12,7 +28,7 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 	token_slice *cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
 	char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*32);
 	bool ignore_lex = true;
-	
+	size_t line_tracker = 1;	
 	for(size_t i=0;i<lh->source_len && ignore_lex;i++){
 		if(lh->source[i] > 0x20){
 			ignore_lex = false;
@@ -44,51 +60,49 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 
 			//////////////////////////////////////////
 			if(!ignore_lex){
-				size_t ws = strlen(token_table_lh[token]);
 				bool isolated = false;
-				buffer[0] = '\0';
-				strcpy(buffer, tracker);
-				buffer[ws] = '\0';
+				bool abort = true;
+				
+				if(token == LXR_NEW_LINE){
+					if(*tracker == '\n') abort = false;
+				}else{
+					size_t ws = strlen(token_table_lh[token]);
+					buffer[0] = '\0';
+					strcpy(buffer, tracker);
+					buffer[ws] = '\0';
 
-				if((tracker+ws < (lh->source+lh->source_len)) && lh->source[i+ws] == ' '){
-					isolated = true;
+					if((tracker+ws < (lh->source+lh->source_len)) && lh->source[i+ws] == ' ')	isolated = true;
+					if(strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0)			abort = false;
 				}
 
-				if(strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0){
-					switch(token){
-						// token syntax variation: if a token require 
-						// a space to be validated you can manually 
-						// insert it in the fallthrough down here
-						case LXR_CONST_DECLARATION:
-						case LXR_VAR_DECLARATION:
-						case LXR_STRING_TYPE:
-						case LXR_INT_TYPE:
-						case LXR_DOUBLE_TYPE:
-						case LXR_FLOAT_TYPE:
-						case LXR_CHAR_TYPE:
-						case LXR_VOID_TYPE:
-							if(isolated){
+				if(!abort){
+					if(token == LXR_NEW_LINE){
+						line_tracker += 1;
+					}else{
+						switch(token){
+							// token syntax variation: if a token require 
+							// a space to be validated you can manually 
+							// insert it in the fallthrough down here
+#define X(name)\
+							case name:
+								TOKEN_ISOLATED()
+									if(isolated){
+										cache_mem[array_tracker].token = token;
+										cache_mem[array_tracker].byte_pointer = tracker;
+										cache_mem[array_tracker].line = line_tracker;
+										array_tracker+=1;
+									}
+								break;
+#undef X
+							default:
 								cache_mem[array_tracker].token = token;
 								cache_mem[array_tracker].byte_pointer = tracker;
+								cache_mem[array_tracker].line = line_tracker;
 								array_tracker+=1;
-							}
-							break;
-						default: 
-							cache_mem[array_tracker].token = token;
-							cache_mem[array_tracker].byte_pointer = tracker;
-							array_tracker+=1;
-							break;
-					}
-
-					if(array_tracker >= array_size){
-						size_t old_size = array_size;
-						array_size *= 2;
-						token_slice* n_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
-						for(size_t z=0;z<old_size;z++){
-							n_cache_mem[z] = cache_mem[z];
+								break;
 						}
-						cache_mem = n_cache_mem;
 					}
+					TOK_RESIZE();
 				}
 			}
 			////////////////////////////////////////
@@ -99,6 +113,9 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 	return;
 }
 
+size_t lxer_get_current_line(lxer_header*lh){
+	return lh->stream_out[lh->lxer_tracker].line;
+}
 
 void lxer_get_lxer_content(lxer_header*lh){
 	NOTY("ILXER", "Stream out length: %zu", lh->stream_out_len);
@@ -775,12 +792,11 @@ char* lxer_get_compound_lh(CINDEX c){
 }
 
 char* lxer_get_rh(lxer_header* lh, bool reverse, bool strict){
-	char* buffer = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*256);
 
+	char* buffer = NULL;
 	size_t tracker = lh->lxer_tracker;
 
 	if(tracker+1 >= lh->stream_out_len){
-		buffer = NULL;	
 		return buffer;
 	}
 	if(reverse){
@@ -788,11 +804,10 @@ char* lxer_get_rh(lxer_header* lh, bool reverse, bool strict){
 			tracker-=1;
 		}
 		else{
-			buffer = NULL;	
 			return buffer;
 		}
 	}
-
+	buffer = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*256);
 	char*pointer = lh->stream_out[tracker].byte_pointer + strlen(token_table_lh[lh->stream_out[tracker].token]);
 	char*end_ptr = NULL;
 	if(tracker < lh->stream_out_len){

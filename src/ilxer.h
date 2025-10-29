@@ -10,8 +10,6 @@
 #include <stdbool.h>
 #include <misc.h>
 
-
-
 // ilxer's main macros to allow easy modification
 
 #define MAX_COMPOUND 32
@@ -24,7 +22,8 @@
 
 #define DECLARE_TOKEN_TABLE_LH(...)\
 	TOKEN_TABLE_LH_SIGN {\
-		__VA_ARGS__\
+		__VA_ARGS__,\
+		[LXR_WORD] = "TOKEN_WORD"\
 	};
 
 #define TOKEN_COMPOUND_SIGN\
@@ -60,7 +59,9 @@
 #define DEFINE_TOKEN_TABLE(...)\
 	TOKEN_TABLE_SIGN {\
 		__VA_ARGS__,\
+		LXR_NEW_LINE,\
 		TOKEN_TABLE_END,\
+		LXR_WORD,\
 		NOT_A_TOKEN\
 	};
 
@@ -68,7 +69,9 @@
 #define DEFINE_TOKEN_TAG(...)\
 	typedef enum {\
 		__VA_ARGS__,\
+		LXR_NEW_LINE,\
 		TOKEN_TABLE_END,\
+		LXR_WORD,\
 		NOT_A_TOKEN\
 	}LXR_TOKENS;
 
@@ -121,6 +124,10 @@
 	__VA_ARGS__,\
 	TAG_PP_END
 
+
+// Custom lxer rule
+
+
 #define TOKEN_SEPARATOR()\
 	X(TAG_MATH_END)\
 	X(TAG_TYPE_END)\
@@ -131,6 +138,16 @@
 	X(TAG_MISC_END)\
 	X(TAG_PP_END)
 
+
+#define TOKEN_ISOLATED()\
+	X(LXR_CONST_DECLARATION)\
+	X(LXR_VAR_DECLARATION)\
+	X(LXR_STRING_TYPE)\
+	X(LXR_INT_TYPE)\
+	X(LXR_DOUBLE_TYPE)\
+	X(LXR_FLOAT_TYPE)\
+	X(LXR_CHAR_TYPE)\
+	X(LXR_VOID_TYPE)
 
 // forward declaration of the main struct
 
@@ -159,6 +176,7 @@ typedef struct ilxer_compound ilxer_compound;
 struct token_slice{
 	LXR_TOKENS token;
 	char* byte_pointer;
+	size_t line;
 };
 
 struct lxer_header{
@@ -195,6 +213,8 @@ LXR_TOKENS lxer_get_next_token(lxer_header*lh);
 char* lxer_get_current_pointer(lxer_header*lh);
 char* lxer_get_string_representation(LXR_TOKENS tok);
 
+
+size_t lxer_get_current_line(lxer_header*lh);
 
 // lxer check functions: check if the token passed as parameter is math, comment, type, sep, brk, statement or misc
 bool lxer_is_math(LXR_TOKENS token);
