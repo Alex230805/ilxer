@@ -1,4 +1,4 @@
-[
+city_0 = [
 	{
 		"name":"Foo",
 		"address":"Foo 34"
@@ -14,5 +14,17 @@
 	{
 		"name":"John",
 		"address":"John 3776"
+	}
+]
+
+
+city_1 = [
+	{
+		"name": "Apotheosis",
+		"address": "112 street"
+	},
+	{
+		"name": "Perished John",
+		"address": "no-mercy-for-him street"
 	}
 ]

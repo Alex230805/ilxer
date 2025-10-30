@@ -1,4 +1,4 @@
-FLAGS:= 
+FLAGS:= -O3 
 COMP:=clang 
 INC:= -I./src
 
@@ -20,7 +20,7 @@ compound: ./compound_test.c misc.o ilxer.o
 	$(COMP) $(FLAGS) $(INC) $< ./src/ilxer.o ./src/misc.o -o ./$@
 
 word: ./word_example.c misc.o ilxer_pr.o
-	$(COMP) $(FLAGS) $(INC) $< ./src/ilxer.o ./src/misc.o -o ./$@
+	$(COMP) $(FLAGS) $(INC) $< ./src/ilxer_pr.o ./src/misc.o -o ./$@
 
 misc.o: ./src/misc.c ./src/misc.h
 	$(COMP) -c $(FLAGS) $(INC) $< -o ./src/$@

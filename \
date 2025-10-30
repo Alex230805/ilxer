@@ -11,7 +11,7 @@ int main(){
 	NOTY("WORD TEST", "Testing general word tokenizer", NULL);
 	StringBuilder* sb = read_file(&ah,SOURCE);
 	lxer_start_lexing(&lh,sb->string);
-	//lxer_get_lxer_content(&lh);
+	lxer_get_lxer_content(&lh);
 	LXR_TOKENS token, next_token;
 	bool cont = true;
 	while(cont){
@@ -21,9 +21,7 @@ int main(){
 			char* city_name = lxer_get_word(&lh);
 			lxer_next_token(&lh);
 			if(lxer_get_next_token(&lh) == LXR_OPEN_SQR_BRK){
-				printf("\n\nCity '%s' found:", city_name);
-				token = lxer_get_current_token(&lh);
-				next_token = lxer_get_next_token(&lh);
+				printf("\n\nCity '%s' found:", city_name);	
 			}else{
 				lxer_increase_tracker(&lh, -1);
 			}

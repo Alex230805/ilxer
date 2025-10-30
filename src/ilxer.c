@@ -17,7 +17,7 @@
 
 
 #define TOK_RESIZE_PRE()\
-	if(pre_array_tracker >= pre_array_size){																		\
+	if(pre_array_tracker+5 >= pre_array_size){																		\
 		size_t old_size = pre_array_size;																			\
 		pre_array_size *= 2;																						\
 		token_slice* pre_n_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*pre_array_size);	\
@@ -29,7 +29,6 @@
 
 
 void lxer_start_lexing(lxer_header* lh, char * source){
-	if(DEBUG) DINFO("Start lexing, file size: %lu", strlen(source));
 	lh->source = source;
 	lh->source_len = strlen(source);
 	
@@ -138,27 +137,26 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 	
 	lh->stream_out = cache_mem;
 	lh->stream_out_len = array_tracker;
-
 #ifdef ILXER_PRECISE_MODE
 
 	size_t pre_array_size = 12;
 	size_t pre_array_tracker = 0;
 	token_slice *pre_cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*pre_array_size);
 	
-	for(size_t i=0;i<lh->stream_out_len-1; i++){
-		char* end = lh->stream_out[i+1].byte_pointer;
-		char* start = lh->stream_out[i].byte_pointer + strlen(token_table_lh[lh->stream_out[i].token]);
-		pre_cache_mem[pre_array_tracker] = lh->stream_out[i];
-		pre_array_tracker += 1;
-		TOK_RESIZE_PRE();
-		size_t word_size = end - start;
+	char * start = lh->source;
+	char* end = NULL;
+	
+	for(size_t i=0;i<lh->stream_out_len; i++){
+		size_t word_size = 0;
+		end = lh->stream_out[i].byte_pointer;
+		word_size = end - start;
 		char* word_buffer= (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*512);
 		memcpy(word_buffer, start, sizeof(char)*word_size);
 		word_buffer[word_size] = '\0';
 		size_t copy_tracker = 0;
 		char* word = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*512);
 		for(size_t j=0;j<word_size;j++){
-			if(word_buffer[j] >='0'){
+			if(word_buffer[j] >= '0'){
 				word[copy_tracker] = word_buffer[j];
 				copy_tracker += 1;
 			}
@@ -169,12 +167,13 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 			pre_cache_mem[pre_array_tracker].byte_pointer = word;
 			pre_cache_mem[pre_array_tracker].line = lh->stream_out[i].line;
 			pre_array_tracker += 1;
-			TOK_RESIZE_PRE();
+			
 		}
+		pre_cache_mem[pre_array_tracker] = lh->stream_out[i];
+		pre_array_tracker += 1;
+		TOK_RESIZE_PRE();
+		start = lh->stream_out[i].byte_pointer + strlen(token_table_lh[lh->stream_out[i].token]);
 	}
-	pre_cache_mem[pre_array_tracker] = lh->stream_out[lh->stream_out_len-1];
-	pre_array_tracker += 1;
-	TOK_RESIZE_PRE();
 	lh->stream_out = pre_cache_mem;
 	lh->stream_out_len = pre_array_tracker;
 
