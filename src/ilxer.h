@@ -41,7 +41,8 @@
 #define DECLARE_TOKEN_TABLE_LH(...)\
 	TOKEN_TABLE_LH_SIGN {\
 		__VA_ARGS__,\
-		[LXR_WORD] = "TOKEN_WORD"\
+		[LXR_WORD] = "TOKEN_WORD",\
+		[LXR_SPACE] = " "\
 	};
 
 #define TOKEN_COMPOUND_SIGN\
@@ -78,6 +79,7 @@
 	TOKEN_TABLE_SIGN {\
 		__VA_ARGS__,\
 		LXR_NEW_LINE,\
+		LXR_SPACE,\
 		TOKEN_TABLE_END,\
 		LXR_WORD,\
 		NOT_A_TOKEN\
@@ -88,6 +90,7 @@
 	typedef enum {\
 		__VA_ARGS__,\
 		LXR_NEW_LINE,\
+		LXR_SPACE,\
 		TOKEN_TABLE_END,\
 		LXR_WORD,\
 		NOT_A_TOKEN\

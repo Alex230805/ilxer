@@ -11,7 +11,7 @@ int main(){
 	NOTY("WORD TEST", "Testing general word tokenizer", NULL);
 	StringBuilder* sb = read_file(&ah,SOURCE);
 	lxer_start_lexing(&lh,sb->string);
-	//lxer_get_lxer_content(&lh);
+	lxer_get_lxer_content(&lh);
 	LXR_TOKENS token, next_token;
 	bool cont = true;
 	while(cont){

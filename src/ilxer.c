@@ -74,9 +74,11 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 			if(!ignore_lex){
 				bool isolated = false;
 				bool abort = true;
+				bool nl = false;
 				if(token == LXR_NEW_LINE){
 					if(*tracker == '\n') {
 						abort = false;
+						nl = true;
 					}
 				}else{
 					size_t ws = strlen(token_table_lh[token]);
@@ -84,8 +86,8 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 					strcpy(buffer, tracker);
 					buffer[ws] = '\0';
 
-					if((tracker+ws < (lh->source+lh->source_len)) && lh->source[i+ws] == ' ')	isolated = true;
-					if(strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0){
+					if(!nl &&(tracker+ws < (lh->source+lh->source_len)) && lh->source[i+ws] == ' ')	isolated = true;
+					if(!nl && strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0){
 						if(token == LXR_DOUBLE_QUOTE){
 							if(!ignore_string){
 								ignore_string = true;
@@ -97,36 +99,34 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 						abort = false;
 					}
 				}
-
 				if(!abort && !jump_hover){
 					if(token == LXR_NEW_LINE){
 						line_tracker += 1;
-					}else{
-						switch(token){
-							// token syntax variation: if a token require 
-							// a space to be validated you can manually 
-							// insert it in the fallthrough down here
+					}
+					switch(token){
+						// token syntax variation: if a token require 
+						// a space to be validated you can manually 
+						// insert it in the fallthrough down here
 #define X(name)\
-							case name:
-								TOKEN_ISOLATED()
-									if(isolated){
-										cache_mem[array_tracker].token = token;
-										cache_mem[array_tracker].byte_pointer = tracker;
-										cache_mem[array_tracker].line = line_tracker;
-										array_tracker+=1;
-									}
-								break;
-#undef X
-							default:
-								cache_mem[array_tracker].token = token;
-								cache_mem[array_tracker].byte_pointer = tracker;
-								cache_mem[array_tracker].line = line_tracker;
-								array_tracker+=1;
-								if(ignore_string){
-									jump_hover = true;
+						case name:
+							TOKEN_ISOLATED()
+								if(isolated){
+									cache_mem[array_tracker].token = token;
+									cache_mem[array_tracker].byte_pointer = tracker;
+									cache_mem[array_tracker].line = line_tracker;
+									array_tracker+=1;
 								}
-								break;
-						}
+							break;
+#undef X
+						default:
+							cache_mem[array_tracker].token = token;
+							cache_mem[array_tracker].byte_pointer = tracker;
+							cache_mem[array_tracker].line = line_tracker;
+							array_tracker+=1;
+							if(ignore_string){
+								jump_hover = true;
+							}
+							break;
 					}
 					TOK_RESIZE();
 				}
@@ -153,26 +153,29 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 		char* word_buffer= (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*512);
 		memcpy(word_buffer, start, sizeof(char)*word_size);
 		word_buffer[word_size] = '\0';
-		size_t copy_tracker = 0;
-		char* word = (char*)arena_alloc(&lh->lxer_ah, sizeof(char)*512);
+
+		bool valid_word = false;
 		for(size_t j=0;j<word_size;j++){
-			if(word_buffer[j] >= '0'){
-				word[copy_tracker] = word_buffer[j];
-				copy_tracker += 1;
+			if(word_buffer[j] > '0'){
+				valid_word = true;
 			}
 		}
-		word[copy_tracker] = '\0';
-		if(copy_tracker > 0){
+		if(valid_word){
 			pre_cache_mem[pre_array_tracker].token = LXR_WORD;
-			pre_cache_mem[pre_array_tracker].byte_pointer = word;
+			pre_cache_mem[pre_array_tracker].byte_pointer = word_buffer;
 			pre_cache_mem[pre_array_tracker].line = lh->stream_out[i].line;
 			pre_array_tracker += 1;
-			
 		}
-		pre_cache_mem[pre_array_tracker] = lh->stream_out[i];
-		pre_array_tracker += 1;
-		TOK_RESIZE_PRE();
-		start = lh->stream_out[i].byte_pointer + strlen(token_table_lh[lh->stream_out[i].token]);
+		if(lh->stream_out[i].token != LXR_SPACE && lh->stream_out[i].token != LXR_NEW_LINE){
+			pre_cache_mem[pre_array_tracker] = lh->stream_out[i];
+			pre_array_tracker += 1;
+			TOK_RESIZE_PRE();
+		}
+		if(lh->stream_out[i].token == LXR_NEW_LINE){
+			start = lh->stream_out[i].byte_pointer + 1;		
+		}else{
+			start = lh->stream_out[i].byte_pointer + strlen(token_table_lh[lh->stream_out[i].token]);
+		}
 	}
 	lh->stream_out = pre_cache_mem;
 	lh->stream_out_len = pre_array_tracker;
