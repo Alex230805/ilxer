@@ -12,6 +12,9 @@
 
 // ilxer's main macros to allow easy modification
 
+// #define ILXER_PRECISE_MODE
+
+
 /*
  * #define ILXER_PRECISE_MODE
  *

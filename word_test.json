@@ -1,0 +1,18 @@
+[
+	{
+		"name":"Foo",
+		"address":"Foo 34"
+	},
+	{
+		"name":"Bar",
+		"address":"Foo 35"
+	},
+	{
+		"name":"Baz",
+		"address":"Foo 420"
+	},
+	{
+		"name":"John",
+		"address":"John 3776"
+	}
+]
