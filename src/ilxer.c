@@ -31,12 +31,12 @@
 void lxer_start_lexing(lxer_header* lh, char * source){
 	lh->source = source;
 	lh->source_len = strlen(source);
-	
+
 	size_t array_size = 12;
 	size_t array_tracker = 0;
 	token_slice *cache_mem = (token_slice*)arena_alloc(&lh->lxer_ah,sizeof(token_slice)*array_size);
 
-	char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*512);
+	char * buffer = (char*)arena_alloc(&lh->lxer_ah,sizeof(char)*32);
 	bool ignore_lex = true;
 	size_t line_tracker = 1;	
 	for(size_t i=0;i<lh->source_len && ignore_lex;i++){
@@ -52,8 +52,10 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 		return;
 	}
 
+#ifndef LXER_DISABLE_MODE_SWITCHER
 	bool ignore_string = false;
 	bool jump_hover = false;
+#endif
 	for(size_t i=0;i<lh->source_len;i++){
 		char* tracker = &lh->source[i];
 		for(size_t j=0;j<TOKEN_TABLE_END; j++){
@@ -83,11 +85,12 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 				}else{
 					size_t ws = strlen(token_table_lh[token]);
 					buffer[0] = '\0';
-					strcpy(buffer, tracker);
+					memcpy(buffer, tracker, sizeof(char)*32);
 					buffer[ws] = '\0';
 
 					if(!nl &&(tracker+ws < (lh->source+lh->source_len)) && lh->source[i+ws] == ' ')	isolated = true;
 					if(!nl && strcmp(buffer,token_table_lh[token]) == 0 && strlen(buffer) > 0){
+#ifndef LXER_DISABLE_MODE_SWITCHER
 						if(token == LXR_DOUBLE_QUOTE){
 							if(!ignore_string){
 								ignore_string = true;
@@ -96,10 +99,15 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 								jump_hover = false;
 							}
 						}
+#endif
 						abort = false;
 					}
 				}
+#ifndef LXER_DISABLE_MODE_SWITCHER
 				if(!abort && !jump_hover){
+#else
+				if(!abort){
+#endif
 					if(token == LXR_NEW_LINE){
 						line_tracker += 1;
 					}
@@ -123,9 +131,11 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 							cache_mem[array_tracker].byte_pointer = tracker;
 							cache_mem[array_tracker].line = line_tracker;
 							array_tracker+=1;
+#ifndef LXER_DISABLE_MODE_SWITCHER
 							if(ignore_string){
 								jump_hover = true;
 							}
+#endif
 							break;
 					}
 					TOK_RESIZE();
