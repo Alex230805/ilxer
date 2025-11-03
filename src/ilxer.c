@@ -166,7 +166,7 @@ void lxer_start_lexing(lxer_header* lh, char * source){
 
 		bool valid_word = false;
 		for(size_t j=0;j<word_size;j++){
-			if(word_buffer[j] > '0'){
+			if(word_buffer[j] >= '0'){
 				valid_word = true;
 			}
 		}
